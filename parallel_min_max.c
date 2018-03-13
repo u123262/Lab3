@@ -145,7 +145,6 @@ int main(int argc, char **argv) {
   double elapsed_time = (finish_time.tv_sec - start_time.tv_sec) * 1000.0;
   elapsed_time += (finish_time.tv_usec - start_time.tv_usec) / 1000.0;
 
-  // remove
   free(array);
 
   printf("Min: %d\n", min_max.min);
