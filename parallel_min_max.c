@@ -106,11 +106,18 @@ int main(int argc, char **argv) {
 
   int num_in_array = array_size/pnum;
 
-  int fd1[2];
-  int fd2[2];
-
-  pipe(fd1);
-  pipe(fd2);
+  int** min_pipes = malloc(sizeof(int*) * pnum);
+  int** max_pipes = malloc(sizeof(int*) * pnum);
+  
+  for (int i = 0; i < pnum; i++){
+    min_pipes[i] = malloc(sizeof(int) * 2);
+    pipe(min_pipes[i]);
+  }
+  
+  for (int i = 0; i < pnum; i++){
+    max_pipes[i] = malloc(sizeof(int) * 2);
+    pipe(max_pipes[i]);
+  }
 
   for (int i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
@@ -127,8 +134,8 @@ int main(int argc, char **argv) {
           fprintf(fp, "%d %d", min_max.min, min_max.max);
           fclose(fp);
         } else {
-          write(fd1[1], &min_max.min, sizeof(int));
-          write(fd2[1], &min_max.max, sizeof(int));
+          write(min_pipes[i][1], &min_max.min, sizeof(int));
+          write(max_pipes[i][1], &min_max.max, sizeof(int));
         }
         return 0;
       }
@@ -163,13 +170,13 @@ int main(int argc, char **argv) {
       fclose(fp);
       remove(file_name);
     } else {
-      read(fd1[0], &min, sizeof(int));
-      read(fd2[0], &max, sizeof(int));
+      read(min_pipes[i][0], &min, sizeof(int));
+      read(max_pipes[i][0], &max, sizeof(int));
 
-      close(fd1[0]);
-      close(fd1[1]);
-      close(fd2[0]);
-      close(fd2[1]);
+      close(min_pipes[i][0]);
+      close(min_pipes[i][1]);
+      close(max_pipes[i][0]);
+      close(max_pipes[i][1]);
     }
 
     if (min < min_max.min) min_max.min = min;
